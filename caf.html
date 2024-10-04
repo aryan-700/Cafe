@@ -1,0 +1,323 @@
+To implement the ability to unselect menu items, we can modify the existing code. When a user clicks on a selected item, it will be removed from the selected items list and the total price will be updated accordingly.
+
+Here's how you can enhance the existing functionality:
+
+### Updated HTML Structure
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cozy Café with 3D Menu</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f8f1e4; /* Light background */
+        }
+
+        header {
+            
+            background: #5D4037;
+            color: #f8f5f4;
+            padding: 20px;
+            text-align: center;
+            position: fixed; /* Fixed positioning */
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000; /* Ensure it's above other content */
+        }
+
+        #hero {
+            background: url(./cafe4.jpg) no-repeat center center/cover;
+            color: white;
+            padding: 20px 20px;
+            text-align: center;
+            height: 100vh; /* Full viewport height */
+            display: flex;
+            gap: 20px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-top: 70px; /* Offset for fixed header */
+        }
+
+        #menu-button {
+            padding: 15px 30px;
+            font-size: 1.5em;
+            background: #795548;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        #menu-button:hover {
+            transform: scale(1.1);
+            background: #5D4037; /* Darker background on hover */
+        }
+
+        #menu-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #3E2723;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 50px auto;
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+
+        .close-button {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            float: right;
+            border-radius: 5px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px;
+            background: #3E2723;
+            color: white;
+        }
+
+        .social-icons {
+            margin-top: 10px;
+        }
+
+        .social-icons img {
+            width: 30px;
+            margin: 0 10px;
+        }
+
+        .dish {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .dish:hover {
+            transform: scale(1.05);
+        }
+
+        .dish img {
+            width: 80px; /* Adjust image size */
+            height: auto;
+            border-radius: 8px;
+            margin-right: 10px;
+        }
+
+        #selected-items {
+            background: #3E2723;
+            color: white;
+            padding: 15px;
+            margin: 20px;
+            border-radius: 10px;
+        }
+
+        #order-buttons {
+            text-align: center;
+            margin: 20px;
+        }
+
+        #order-buttons button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            background: #795548;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 5px;
+            transition: transform 0.3s;
+        }
+
+        #order-buttons button:hover {
+            transform: scale(1.1);
+            background: #5D4037; /* Darker background on hover */
+        }
+
+        @media (max-width: 600px) {
+            #menu-button {
+                width: 100%;
+            }
+
+            .dish img {
+                width: 60px; /* Smaller images on small screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Welcome to Fast and Fresh Cafe</h1>
+    </header>
+    
+    <section id="hero">
+        <h2>Your Favorite Place to Relax</h2>
+        <button id="menu-button">View Menu</button>
+    </section>
+
+    <div id="menu-modal">
+        <div class="modal-content">
+            <button class="close-button" id="close-button">X</button>
+            <h2>Menu</h2>
+            <h3>Café Items</h3>
+            <ul id="menu-list">
+                <li class="dish" data-price="240">
+                    <img src="./coffe.jpg" alt="Coffee">
+                    <span>Coffee - ₹240 <span>Description: Freshly brewed coffee.</span></span>
+                </li>
+                <li class="dish" data-price="200">
+                    <img src="./tea.jpg" alt="Tea">
+                    <span>Tea - ₹200 <span>Description: A variety of herbal and black teas.</span></span>
+                </li>
+                <li class="dish" data-price="160">
+                    <img src="./croi.jpg" alt="Croissant">
+                    <span>Croissant - ₹160 <span>Description: Flaky, buttery croissant.</span></span>
+                </li>
+                <li class="dish" data-price="400">
+                    <img src="./sand.jpg" alt="Sandwich">
+                    <span>Sandwich - ₹400 <span>Description: Delicious sandwich with fresh ingredients.</span></span>
+                </li>
+                <li class="dish" data-price="200">
+                    <img src="./past.jpg" alt="Pastries">
+                    <span>Pastries - ₹200 <span>Description: Assorted pastries baked daily.</span></span>
+                </li>
+                <li class="dish" data-price="320">
+                    <img src="./salad.jpg" alt="Salads">
+                    <span>Salads - ₹320 <span>Description: Fresh salads made to order.</span></span>
+                </li>
+            </ul>
+
+            <h2>Specials</h2>
+            <h3>Japanese Cuisine</h3>
+            <ul id="japanese-menu">
+                <li class="dish" data-price="800">
+                    <img src="./sushi.jpg" alt="Sushi">
+                    <span>Sushi - ₹800 <span>Description: Fresh sushi rolls with your choice of filling.</span></span>
+                </li>
+                <li class="dish" data-price="960">
+                    <img src="./ramen.jpg" alt="Ramen">
+                    <span>Ramen - ₹960 <span>Description: Delicious noodle soup with various toppings.</span></span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="selected-items">
+        <h2>Selected Items:</h2>
+        <ul id="selected-list"></ul>
+        <h3>Total: ₹<span id="total-price">0</span></h3>
+    </div>
+
+    <div id="order-buttons">
+        <button id="order-button">Order</button>
+        <button id="pay-button">Pay</button>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Cozy Café. All rights reserved.</p>
+        <p>Email: <a href="mailto:aryanpahak201@gmail.com" style="color: white;">aryanpahak201@gmail.com</a></p>
+        <div class="social-icons">
+            <a href="#"><img src="./fb.jpg" alt="Facebook"></a>
+            <a href="#"><img src="./twiter.png" alt="Twitter"></a>
+            <a href="#"><img src="./instgram.jpg" alt="Instagram"></a>
+        </div>
+    </footer>
+
+    <script>
+        const menuButton = document.getElementById('menu-button');
+        const menuModal = document.getElementById('menu-modal');
+        const closeButton = document.getElementById('close-button');
+        const selectedList = document.getElementById('selected-list');
+        const totalPriceElement = document.getElementById('total-price');
+        const orderButton = document.getElementById('order-button');
+        const payButton = document.getElementById('pay-button');
+        let totalPrice = 0;
+
+        menuButton.addEventListener('click', () => {
+            menuModal.style.display = 'block';
+        });
+
+        closeButton.addEventListener('click', () => {
+            menuModal.style.display = 'none';
+        });
+
+        window.addEventListener('click', (event) => {
+            if (event.target === menuModal) {
+                menuModal.style.display = 'none';
+            }
+        });
+
+       
+
+ // Adding items to the selected list
+        const items = document.querySelectorAll('.dish');
+        items.forEach(item => {
+            item.addEventListener('click', () => {
+                const selectedItem = item.querySelector('span').innerText;
+                const price = item.dataset.price;
+
+                // Check if item is already selected
+                const existingItem = [...selectedList.children].find(li => li.textContent.includes(selectedItem));
+                if (existingItem) {
+                    // Item is already selected; remove it
+                    selectedList.removeChild(existingItem);
+                    totalPrice -= parseInt(price);
+                } else {
+                    // Item is not selected; add it
+                    const li = document.createElement('li');
+                    li.textContent = selectedItem;
+                    selectedList.appendChild(li);
+                    totalPrice += parseInt(price);
+                }
+
+                // Update total price
+                totalPriceElement.textContent = totalPrice;
+            });
+        });
+
+        orderButton.addEventListener('click', () => {
+            alert('Your order has been placed!');
+            selectedList.innerHTML = ''; // Clear selected items
+            totalPrice = 0;
+            totalPriceElement.textContent = totalPrice;
+        });
+
+        payButton.addEventListener('click', () => {
+            alert('Redirecting to payment...');
+        });
+    </script>
+</body>
+</html>
+
